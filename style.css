@@ -54,3 +54,36 @@ footer {
     margin-right: 15px;
     vertical-align: middle;
 }
+
+.project-card {
+    background-color: #111;
+    border: 2px solid #00ff00;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 40px auto;
+    max-width: 800px;
+    text-align: left;
+}
+
+.project-card h3 {
+    font-size: 2em;
+    margin-top: 0;
+    color: #00ff00;
+}
+
+.project-image {
+    width: 100%;
+    max-width: 600px;
+    border: 1px solid #00ff00;
+    margin: 20px 0;
+    border-radius: 8px;
+}
+
+.project-card a {
+    font-size: 1.2em;
+    text-decoration: none;
+}
+
+.project-card a:hover {
+    text-decoration: underline;
+}
