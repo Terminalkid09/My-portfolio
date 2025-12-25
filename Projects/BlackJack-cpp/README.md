@@ -9,7 +9,7 @@
 - Asso vale 1 o 11 automaticamente
 - Dealer pesca fino a 17
 
-## Screenshot di gioco
+### Screenshot di gioco
  ![Gameplay del Blackjack](gameplay.png)
 
 Progetto scolastico per esercitarmi con C++
