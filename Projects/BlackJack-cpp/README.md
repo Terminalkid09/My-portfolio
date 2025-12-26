@@ -1,15 +1,20 @@
-# Blackjack su console in C++
+# Console Blackjack in C++ 🃏
 
-## Come eseguire
-1. compila: 'g++ Blackjack.cpp -o Blackjack'
-2. esegui: './Blackjack o Blackjack.exe'
+Terminal Blackjack game with betting and balance management.
 
-## Regole
-- Carte da 1 a 10 (J, Q, K = 10)
-- Asso vale 1 o 11 automaticamente
-- Dealer pesca fino a 17
+### Features
+- Random card dealing
+- Ace handling (1 or 11 automatically)
+- Player hit/stand
+- Dealer draws until 17
+- Win/loss/bust detection
 
-### Screenshot di gioco
- ![Gameplay del Blackjack](gameplay.png)
+### How to run
+1. Compile: `g++ BlackJack.cpp -o blackjack`
+2. Execute: `./blackjack` or `blackjack.exe`
 
-Progetto scolastico per esercitarmi con C++
+### Screenshot
+![Gameplay](gameplay.png)
+
+School project to practice C++ logic and control flow.
+**@Terminalkid09**

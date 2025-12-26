@@ -1,17 +1,18 @@
- #include <iostream>
+#include <iostream>
 #include <vector>
 #include <cstdlib>
 #include <ctime>
 #include <string>
-#include <functional>
+#include <limits>
+
 using namespace std;
 
-struct Carta {
-    string nome;
-    int valore;
+struct Card {
+    string name;
+    int value;
 };
 
-Carta pescaCarta() {
+Card drawCard() {
     int n = rand() % 13 + 1;
     if (n == 1) return {"A", 11};
     else if (n == 11) return {"J", 10};
@@ -20,133 +21,151 @@ Carta pescaCarta() {
     else return {to_string(n), n};
 }
 
-int sommaMano(const vector<Carta>& mano) {
-    int somma = 0, assi = 0;
-    for (const auto& c : mano) {
-        somma += c.valore;
-        if (c.nome == "A") assi++;
+int handSum(const vector<Card>& hand) {
+    int sum = 0, aces = 0;
+    for (const auto& c : hand) {
+        sum += c.value;
+        if (c.name == "A") aces++;
     }
-    while (somma > 21 && assi > 0) {
-        somma -= 10;
-        assi--;
+    while (sum > 21 && aces > 0) {
+        sum -= 10;
+        aces--;
     }
-    return somma;
+    return sum;
 }
 
-void mostraMano(string nome, const vector<Carta>& mano) {
-    cout << nome << ": ";
-    for (const auto& c : mano) cout << c.nome << " ";
-    cout << "(Totale: " << sommaMano(mano) << ")" << endl;
+void showHand(const string& label, const vector<Card>& hand) {
+    cout << label << ": ";
+    for (const auto& c : hand) cout << c.name << " ";
+    cout << "(Total: " << handSum(hand) << ")" << endl;
 }
 
-// Funzione ausiliaria: turno del giocatore (spostata fuori da main per compatibilità)
-void turnoGiocatoreFun(vector<Carta>& mano) {
-    char scelta;
+void playerTurn(vector<Card>& hand) {
+    char choice;
     do {
-        if (sommaMano(mano) >= 21) break;
-        cout << "Vuoi pescare un'altra carta? (s/n): ";
-        cin >> scelta;
-        if (scelta == 's') {
-            mano.push_back(pescaCarta());
-            mostraMano("Giocatore", mano);
+        if (handSum(hand) >= 21) break;
+        cout << "Do you want to draw another card? (y/n): ";
+        if (!(cin >> choice)) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            break;
         }
-    } while (scelta == 's');
+        if (choice == 'y' || choice == 'Y') {
+            hand.push_back(drawCard());
+            showHand("Player", hand);
+        }
+    } while (choice == 'y' || choice == 'Y');
+    // clear trailing newline if any for next getline/inputs
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
 }
 
-// Funzione per valutare il risultato tra una mano del giocatore e il banco
-double valutaRisultatoFun(const vector<Carta>& mano, const vector<Carta>& banco, double puntata) {
-    int totG = sommaMano(mano), totB = sommaMano(banco);
-    if (totG > 21) return -puntata;
-    else if (totB > 21 || totG > totB) return puntata;
-    else if (totG == totB) return 0.0;
-    else return -puntata;
+double evaluateResult(const vector<Card>& player, const vector<Card>& dealer, double bet) {
+    int pTotal = handSum(player);
+    int dTotal = handSum(dealer);
+    if (pTotal > 21) return -bet;
+    else if (dTotal > 21 || pTotal > dTotal) return bet;
+    else if (pTotal == dTotal) return 0.0;
+    else return -bet;
 }
 
 int main() {
     srand(static_cast<unsigned int>(time(nullptr)));
 
-    double saldo = 100;
-    char continua;
+    double balance = 100.0;
+    char cont = 'y';
 
     do {
-        if (saldo <= 0) {
-            cout << "Hai finito i soldi! Fine gioco.\n";
+        if (balance <= 0) {
+            cout << "You ran out of money! Game over.\n";
             break;
         }
 
-        double puntata;
-        cout << "\nSaldo attuale: €" << saldo << "\nQuanto vuoi puntare? ";
-        cin >> puntata;
-        if (puntata > saldo || puntata <= 0) {
-            cout << "Puntata non valida.\n";
+        double bet;
+        cout << "\nCurrent balance: $" << balance << "\nHow much would you like to bet? ";
+        if (!(cin >> bet)) {
+            cout << "Invalid bet.\n";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             continue;
         }
+        if (bet > balance || bet <= 0) {
+            cout << "Invalid bet amount.\n";
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            continue;
+        }
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-        // Inizializza mani e variabili
-        vector<Carta> giocatore;
-        vector<Carta> mano2;
-        vector<Carta> banco;
-        bool split = false;
+        // Initialize hands and variables
+        vector<Card> playerHand;
+        vector<Card> splitHand;
+        vector<Card> dealerHand;
+        bool didSplit = false;
 
-        // Distribuzione iniziale: due carte al giocatore e due al banco
-        giocatore.push_back(pescaCarta());
-        giocatore.push_back(pescaCarta());
-        banco.push_back(pescaCarta());
-        banco.push_back(pescaCarta());
+        // Initial deal: two cards to player and two to dealer
+        playerHand.push_back(drawCard());
+        playerHand.push_back(drawCard());
+        dealerHand.push_back(drawCard());
+        dealerHand.push_back(drawCard());
 
-        // Mostra mano giocatore e una carta del banco
-        mostraMano("Giocatore", giocatore);
-        cout << "Banco: " << banco[0].nome << " ?" << " (seconda carta nascosta)\n";
+        // Show player hand and one dealer card
+        showHand("Player", playerHand);
+        cout << "Dealer: " << dealerHand[0].name << " ?" << " (second card hidden)\n";
 
-        // Permetti lo split solo se le prime due carte del giocatore hanno lo stesso valore/nome
-        if (giocatore.size() == 2 && giocatore[0].nome == giocatore[1].nome) {
-            cout << "Vuoi fare lo split? (s/n): ";
-            char s; cin >> s;
-            if (s == 's') {
-                split = true;
-                // crea seconda mano spostando la seconda carta
-                mano2.push_back(giocatore[1]);
-                giocatore.pop_back();
-                // pesca una carta di rimpiazzo per ciascuna mano
-                giocatore.push_back(pescaCarta());
-                mano2.push_back(pescaCarta());
+        // Allow split if first two player cards have same name/value
+        if (playerHand.size() == 2 && playerHand[0].name == playerHand[1].name) {
+            cout << "Do you want to split? (y/n): ";
+            char s;
+            if (cin >> s) {
+                if (s == 'y' || s == 'Y') {
+                    didSplit = true;
+                    // move second card to split hand
+                    splitHand.push_back(playerHand[1]);
+                    playerHand.pop_back();
+                    // draw replacement card for each hand
+                    playerHand.push_back(drawCard());
+                    splitHand.push_back(drawCard());
+                }
             }
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
         }
 
-        // Turno giocatore per la prima mano
-        cout << "\n--- Prima mano ---\n";
-        mostraMano("Giocatore", giocatore);
-        turnoGiocatoreFun(giocatore);
+        // Player's turn for first hand
+        cout << "\n--- First hand ---\n";
+        showHand("Player", playerHand);
+        playerTurn(playerHand);
 
-        // Se split è stato effettuato, gioca la seconda mano
-        if (split) {
-            cout << "\n--- Seconda mano (split) ---\n";
-            mostraMano("Seconda mano", mano2);
-            turnoGiocatoreFun(mano2);
+        // If split, play second hand
+        if (didSplit) {
+            cout << "\n--- Second hand (split) ---\n";
+            showHand("Second hand", splitHand);
+            playerTurn(splitHand);
         }
 
-        // Turno banco: pesca fino a 17 o più
-        while (sommaMano(banco) < 17) {
-            banco.push_back(pescaCarta());
+        // Dealer's turn: draw until 17 or more
+        while (handSum(dealerHand) < 17) {
+            dealerHand.push_back(drawCard());
         }
-        cout << "\n--- Banco ---\n";
-        mostraMano("Banco", banco);
+        cout << "\n--- Dealer ---\n";
+        showHand("Dealer", dealerHand);
 
-        // Valuta risultati e aggiorna il saldo
-        double risultato = valutaRisultatoFun(giocatore, banco, puntata);
-        saldo += risultato;
-        cout << "Risultato mano: " << risultato << "  Saldo: €" << saldo << endl;
+        // Evaluate results and update balance
+        double result = evaluateResult(playerHand, dealerHand, bet);
+        balance += result;
+        cout << "First hand result: " << (result >= 0 ? "+" : "") << result << "  Balance: $" << balance << endl;
 
-        if (split) {
-            double risultato2 = valutaRisultatoFun(mano2, banco, puntata);
-            saldo += risultato2;
-            cout << "Risultato seconda mano: " << risultato2 << "  Saldo: €" << saldo << endl;
+        if (didSplit) {
+            double result2 = evaluateResult(splitHand, dealerHand, bet);
+            balance += result2;
+            cout << "Second hand result: " << (result2 >= 0 ? "+" : "") << result2 << "  Balance: $" << balance << endl;
         }
 
-        // Chiediamo se continuare la partita
-        cout << "Vuoi giocare ancora? (s/n): ";
-        cin >> continua;
-    } while (continua == 's' || continua == 'S');
+        // Ask to continue
+        cout << "Do you want to play again? (y/n): ";
+        if (!(cin >> cont)) {
+            break;
+        }
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    } while (cont == 'y' || cont == 'Y');
 
     return 0;
 }
