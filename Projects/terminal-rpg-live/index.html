@@ -1,59 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terminal RPG Adventure - Live in Browser</title>
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
-    <style>
-        body { 
-            background: #000; 
-            color: #00ff00; 
-            font-family: 'Courier New', monospace; 
-            padding: 20px; 
-            margin: 0;
-        }
-        h1 { 
-            text-align: center; 
-            text-shadow: 0 0 10px #00ff00; 
-        }
-        #output { 
-            white-space: pre-wrap; 
-            min-height: 70vh; 
-            margin-bottom: 20px;
-            padding: 10px;
-            border: 1px solid #00ff00;
-            border-radius: 5px;
-            overflow-y: auto;
-        }
-        input { 
-            background: #000; 
-            color: #00ff00; 
-            border: 1px solid #00ff00; 
-            font-family: monospace; 
-            width: 100%; 
-            padding: 10px; 
-            font-size: 16px; 
-            box-sizing: border-box;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terminal RPG Adventure - Live in Browser</title>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+  <style>
+    body {
+      background: #000;
+      color: #00ff00;
+      font-family: "Courier New", monospace;
+      padding: 20px;
+      margin: 0;
+    }
+    h1 {
+      text-align: center;
+      text-shadow: 0 0 10px #00ff00;
+    }
+    #output {
+      white-space: pre-wrap;
+      min-height: 70vh;
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 1px solid #00ff00;
+      border-radius: 5px;
+      overflow-y: auto;
+    }
+    #input {
+      background: #000;
+      color: #00ff00;
+      border: 1px solid #00ff00;
+      font-family: monospace;
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+  </style>
 </head>
 <body>
-    <h1>🎮 Terminal RPG Adventure - Play in Browser</h1>
-    <div id="output">Loading Python environment... Please wait...</div>
-    <input type="text" id="input" autofocus placeholder="Type your choice and press Enter">
+  <h1>🎮 Terminal RPG Adventure - Play in Browser</h1>
+  <div id="output">Loading Python environment... Please wait...</div>
+  <input type="text" id="input" autofocus placeholder="Type your choice and press Enter" />
 
-    <script type="text/javascript">
-        async function main() {
-            let pyodide = await loadPyodide();
-            let output = document.getElementById("output");
-            let input = document.getElementById("input");
+  <script type="text/javascript">
+    let pyodideReady = null;
+    let handleInputPy = null;
+    let initGamePy = null;
 
-            output.innerHTML = "Python loaded! Starting game...\n\n";
+    async function loadGame() {
+      const output = document.getElementById("output");
+      const input = document.getElementById("input");
 
-            let code = `
+      output.textContent = "Loading Pyodide...";
+
+      const pyodide = await loadPyodide();
+      pyodideReady = pyodide;
+
+      const pythonCode = `
 import random
 
+# -------------------------
+# GAME STATE
+# -------------------------
 player = {
     "name": "Hero",
     "hp": 50,
@@ -67,12 +76,6 @@ player = {
     "weapon": "None",
     "armor": "Cloth Tunic"
 }
-
-def get_attack():
-    return player["base_attack"] + player["weapon_bonus"]
-
-def get_defense():
-    return player["base_defense"] + player["armor_bonus"]
 
 areas = {
     "forest": {
@@ -109,349 +112,454 @@ areas = {
     }
 }
 
-def world_map():
-    while True:
-        print("\\n🗺️ WORLD MAP")
-        print(f"HP: {player['hp']}/{player['max_hp']} | ATK: {get_attack()} | DEF: {get_defense()} | Gold: {player['gold']}")
-        print(f"Weapon: {player['weapon']} | Armor: {player['armor']}")
-        print("\\nWhere do you want to go?")
-        print("1) Dark Forest")
-        print("2) Mountain Pass")
-        print("3) Misty Lake")
-        print("4) Burning Desert")
-        print("5) Village")
-        print("6) Quit game")
+state = {
+    "mode": "world_map",   # world_map, exploring, combat, village, shop, npc_menu, inn, game_over
+    "current_area": None,
+    "current_enemy": None,
+    "combat_is_boss": False,
+    "pending_text": "",
+    "npc": None,
+    "shop_step": None
+}
 
-        choice = input("→ ")
+def get_attack():
+    return player["base_attack"] + player["weapon_bonus"]
 
-        if choice == "1":
-            explore_area("forest")
-        elif choice == "2":
-            explore_area("mountain")
-        elif choice == "3":
-            explore_area("lake")
-        elif choice == "4":
-            explore_area("desert")
-        elif choice == "5":
-            village()
-        elif choice == "6":
-            print("Thanks for playing!")
-            break
-        else:
-            print("Invalid choice.")
+def get_defense():
+    return player["base_defense"] + player["armor_bonus"]
 
-def explore_area(key):
+# -------------------------
+# UTIL
+# -------------------------
+def fmt_stats_line():
+    return f"HP: {player['hp']}/{player['max_hp']} | ATK: {get_attack()} | DEF: {get_defense()} | Gold: {player['gold']}\\nWeapon: {player['weapon']} | Armor: {player['armor']}"
+
+def clamp_hp():
+    if player["hp"] < 0:
+        player["hp"] = 0
+    if player["hp"] > player["max_hp"]:
+        player["hp"] = player["max_hp"]
+
+# -------------------------
+# WORLD MAP
+# -------------------------
+def show_world_map():
+    state["mode"] = "world_map"
+    text = "🗺️ WORLD MAP\\n"
+    text += fmt_stats_line() + "\\n\\n"
+    text += "Where do you want to go?\\n"
+    text += "1) Dark Forest\\n"
+    text += "2) Mountain Pass\\n"
+    text += "3) Misty Lake\\n"
+    text += "4) Burning Desert\\n"
+    text += "5) Village\\n"
+    text += "6) Quit game\\n"
+    return text
+
+def handle_world_map_input(inp: str):
+    inp = inp.strip()
+    if inp == "1":
+        return start_area("forest")
+    elif inp == "2":
+        return start_area("mountain")
+    elif inp == "3":
+        return start_area("lake")
+    elif inp == "4":
+        return start_area("desert")
+    elif inp == "5":
+        return enter_village()
+    elif inp == "6":
+        state["mode"] = "game_over"
+        return "Thanks for playing!\\n(Game over)"
+    else:
+        return "Invalid choice.\\n\\n" + show_world_map()
+
+# -------------------------
+# AREA & COMBAT
+# -------------------------
+def start_area(key: str):
+    state["current_area"] = key
     area = areas[key]
-    print(f"\\n🌄 You travel to the {area['name']}...")
+    state["mode"] = "exploring"
+    # Start with first enemy
+    state["current_enemy"] = {
+        "index": 0,
+        "data": area["enemies"][0]
+    }
+    return f"🌄 You travel to the {area['name']}...\\n" + start_enemy_combat_text()
 
-    random_npc_event(key)
+def start_enemy_combat_text():
+    enemy_info = state["current_enemy"]["data"]
+    enemy_info = enemy_info.copy()
+    enemy_info["current_hp"] = enemy_info["hp"]
+    state["current_enemy"]["data"] = enemy_info
+    state["combat_is_boss"] = False
+    state["mode"] = "combat"
+    return f"\\n⚔️ A {enemy_info['name']} appears!\\n" + combat_prompt()
 
-    for enemy in area["enemies"]:
-        combat(enemy)
+def combat_prompt():
+    enemy = state["current_enemy"]["data"]
+    text = f"\\nYour HP: {player['hp']}/{player['max_hp']} | {enemy['name']} HP: {enemy['current_hp']}\\n"
+    text += "1) Attack\\n"
+    text += "2) Defend\\n"
+    text += "3) Use item\\n"
+    text += "4) Run away"
+    if state["combat_is_boss"]:
+        text += " (can't run from boss!)"
+    text += "\\n"
+    return text
 
-    print(f"\\n🔥 A powerful presence approaches in the {area['name']}...")
-    boss = area["boss"]
-    boss_result = combat(boss, is_boss=True)
-    if boss_result:
-        print(f"\\n🏆 You have cleared the {area['name']}!")
-    input("\\nPress ENTER to return to the world map...")
+def handle_combat_input(inp: str):
+    inp = inp.strip()
+    enemy = state["current_enemy"]["data"]
+    is_boss = state["combat_is_boss"]
+    log = ""
 
-def village():
-    while True:
-        print("\\n🏘️ You arrive at the village.")
-        print(f"HP: {player['hp']}/{player['max_hp']} | Gold: {player['gold']}")
-        print("1) Visit Shop")
-        print("2) Talk to NPCs")
-        print("3) Rest at Inn (+20 HP, 5 gold)")
-        print("4) Return to World Map")
+    if player["hp"] <= 0:
+        state["mode"] = "game_over"
+        return "You are already dead... Game over.\\n"
 
-        choice = input("→ ")
+    defended = False
 
-        if choice == "1":
-            shop()
-        elif choice == "2":
-            village_npc()
-        elif choice == "3":
-            rest_inn()
-        elif choice == "4":
-            return
-        else:
-            print("Invalid choice.")
+    if inp == "1":
+        dmg = random.randint(get_attack(), get_attack() + 4)
+        enemy["current_hp"] -= dmg
+        log += f"You strike the {enemy['name']} for {dmg} damage!\\n"
+    elif inp == "2":
+        defended = True
+        log += "You brace yourself for the attack.\\n"
+    elif inp == "3":
+        log += use_item()
+    elif inp == "4" and not is_boss:
+        state["mode"] = "world_map"
+        return log + "You run away safely...\\n\\n" + show_world_map()
+    elif inp == "4" and is_boss:
+        log += "You cannot escape from a boss!\\n"
+    else:
+        return "Invalid action.\\n" + combat_prompt()
+
+    # Enemy turn if still alive
+    if enemy["current_hp"] > 0:
+        dmg_taken = random.randint(enemy["attack"] - 2, enemy["attack"] + 2)
+        dmg_taken = max(1, dmg_taken - get_defense())
+        if defended:
+            dmg_taken //= 2
+        player["hp"] -= dmg_taken
+        clamp_hp()
+        log += f"The {enemy['name']} hits you for {dmg_taken} damage.\\n"
+    else:
+        # Enemy defeated
+        gold = enemy["gold"]
+        player["gold"] += gold
+        log += f"\\n🎉 You defeated the {enemy['name']}!\\nYou receive {gold} gold.\\n"
+        # Random loot
+        loot = random.choice(["Nothing", "Potion", "Bomb", "Trinket"])
+        if loot != "Nothing":
+            if loot == "Trinket":
+                loot = random.choice(["Ancient Coin", "Shiny Gem", "Old Ring"])
+            player["inventory"].append(loot)
+            log += f"You found: {loot}\\n"
+        # Next enemy or boss
+        return log + handle_after_enemy_defeated()
+
+    # Check if player died
+    if player["hp"] <= 0:
+        state["mode"] = "game_over"
+        return log + "\\n💀 You have fallen in battle...\\nGame over.\\n"
+
+    log += combat_prompt()
+    return log
+
+def handle_after_enemy_defeated():
+    area = areas[state["current_area"]]
+    idx = state["current_enemy"]["index"]
+    if idx == 0:
+        # second enemy
+        state["current_enemy"]["index"] = 1
+        state["current_enemy"]["data"] = area["enemies"][1]
+        return start_enemy_combat_text()
+    elif idx == 1:
+        # boss
+        boss = area["boss"].copy()
+        boss["current_hp"] = boss["hp"]
+        state["current_enemy"] = {"index": 2, "data": boss}
+        state["combat_is_boss"] = True
+        state["mode"] = "combat"
+        return f"\\n🔥 A powerful presence approaches in the {area['name']}...\\nA {boss['name']} appears!\\n" + combat_prompt()
+    else:
+        state["mode"] = "world_map"
+        return f"\\n🏆 You have cleared the {area['name']}!\\n\\n" + show_world_map()
+
+# -------------------------
+# VILLAGE & SHOP
+# -------------------------
+def enter_village():
+    state["mode"] = "village"
+    return village_menu_text()
+
+def village_menu_text():
+    text = "\\n🏘️ You arrive at the village.\\n"
+    text += fmt_stats_line() + "\\n\\n"
+    text += "1) Visit Shop\\n"
+    text += "2) Talk to NPCs\\n"
+    text += "3) Rest at Inn (+20 HP, 5 gold)\\n"
+    text += "4) Return to World Map\\n"
+    return text
+
+def handle_village_input(inp: str):
+    inp = inp.strip()
+    if inp == "1":
+        state["mode"] = "shop"
+        return shop_menu_text()
+    elif inp == "2":
+        state["mode"] = "npc_menu"
+        return npc_menu_text()
+    elif inp == "3":
+        return rest_inn()
+    elif inp == "4":
+        state["mode"] = "world_map"
+        return show_world_map()
+    else:
+        return "Invalid choice.\\n" + village_menu_text()
 
 def rest_inn():
     if player["gold"] < 5:
-        print("\\nYou don't have enough gold to rest.")
-        return
+        return "\\nYou don't have enough gold to rest.\\n" + village_menu_text()
     player["gold"] -= 5
     heal = 20
     player["hp"] = min(player["hp"] + heal, player["max_hp"])
-    print(f"\\nYou rest at the inn. (+{heal} HP)")
+    return f"\\nYou rest at the inn. (+{heal} HP)\\n" + village_menu_text()
 
-def shop():
-    while True:
-        print("\\n🏪 Village Shop")
-        print(f"Gold: {player['gold']}")
-        print("Items for sale:")
-        print("1) Potion (+20 HP) - 8 gold")
-        print("2) Iron Sword (+3 ATK) - 20 gold")
-        print("3) Steel Armor (+3 DEF) - 20 gold")
-        print("4) Back")
+def shop_menu_text():
+    text = "\\n🏪 Village Shop\\n"
+    text += f"Gold: {player['gold']}\\n"
+    text += "Items for sale:\\n"
+    text += "1) Potion (+20 HP) - 8 gold\\n"
+    text += "2) Iron Sword (+3 ATK) - 20 gold\\n"
+    text += "3) Steel Armor (+3 DEF) - 20 gold\\n"
+    text += "4) Back\\n"
+    return text
 
-        choice = input("→ ")
+def handle_shop_input(inp: str):
+    inp = inp.strip()
+    if inp == "1":
+        return buy_item("Potion", 8)
+    elif inp == "2":
+        return buy_weapon("Iron Sword", 3, 20)
+    elif inp == "3":
+        return buy_armor("Steel Armor", 3, 20)
+    elif inp == "4":
+        state["mode"] = "village"
+        return village_menu_text()
+    else:
+        return "Invalid choice.\\n" + shop_menu_text()
 
-        if choice == "1":
-            buy_item("Potion", 8)
-        elif choice == "2":
-            buy_weapon("Iron Sword", bonus=3, cost=20)
-        elif choice == "3":
-            buy_armor("Steel Armor", bonus=3, cost=20)
-        elif choice == "4":
-            return
-        else:
-            print("Invalid choice.")
-
-def buy_item(item_name, cost):
+def buy_item(name, cost):
     if player["gold"] < cost:
-        print("Not enough gold.")
-        return
+        return "Not enough gold.\\n" + shop_menu_text()
     player["gold"] -= cost
-    player["inventory"].append(item_name)
-    print(f"You bought a {item_name}.")
+    player["inventory"].append(name)
+    return f"You bought a {name}.\\n" + shop_menu_text()
 
 def buy_weapon(name, bonus, cost):
     if player["gold"] < cost:
-        print("Not enough gold.")
-        return
+        return "Not enough gold.\\n" + shop_menu_text()
     player["gold"] -= cost
     player["weapon"] = name
     player["weapon_bonus"] = bonus
-    print(f"You equipped {name}. Attack increased!")
+    return f"You equipped {name}. Attack increased!\\n" + shop_menu_text()
 
 def buy_armor(name, bonus, cost):
     if player["gold"] < cost:
-        print("Not enough gold.")
-        return
+        return "Not enough gold.\\n" + shop_menu_text()
     player["gold"] -= cost
     player["armor"] = name
     player["armor_bonus"] = bonus
-    print(f"You equipped {name}. Defense increased!")
+    return f"You equipped {name}. Defense increased!\\n" + shop_menu_text()
 
-def village_npc():
-    while True:
-        print("\\n🏘️ Village NPCs")
-        print("1) Talk to Old Sage")
-        print("2) Talk to Village Guard")
-        print("3) Talk to Traveling Merchant")
-        print("4) Back")
+# -------------------------
+# NPCs
+# -------------------------
+def npc_menu_text():
+    text = "\\n🏘️ Village NPCs\\n"
+    text += "1) Talk to Old Sage\\n"
+    text += "2) Talk to Village Guard\\n"
+    text += "3) Talk to Traveling Merchant\\n"
+    text += "4) Back\\n"
+    return text
 
-        choice = input("→ ")
+def handle_npc_menu_input(inp: str):
+    inp = inp.strip()
+    if inp == "1":
+        return npc_dialog("Old Sage")
+    elif inp == "2":
+        return npc_dialog("Village Guard")
+    elif inp == "3":
+        return npc_dialog("Traveling Merchant")
+    elif inp == "4":
+        state["mode"] = "village"
+        return village_menu_text()
+    else:
+        return "Invalid choice.\\n" + npc_menu_text()
 
-        if choice == "1":
-            npc_dialog("Old Sage")
-        elif choice == "2":
-            npc_dialog("Village Guard")
-        elif choice == "3":
-            npc_dialog("Traveling Merchant")
-        elif choice == "4":
-            return
-        else:
-            print("Invalid choice.")
+def npc_dialog(name: str):
+    text = f"\\n💬 You meet {name}.\\n"
+    if name == "Old Sage":
+        text += "\\nOld Sage: 'Traveler... the world is full of dangers.'\\n"
+        text += "1) Ask for wisdom\\n"
+        text += "2) Ask for healing\\n"
+        text += "3) Leave\\n"
+        state["npc"] = "Old Sage"
+    elif name == "Village Guard":
+        text += "\\nGuard: 'Stay out of trouble, adventurer.'\\n"
+        text += "1) Ask about dangers\\n"
+        text += "2) Ask about treasure\\n"
+        text += "3) Leave\\n"
+        state["npc"] = "Village Guard"
+    elif name == "Traveling Merchant":
+        text += "\\nMerchant: 'Greetings! I have something for you.'\\n"
+        text += "1) Receive a free Potion\\n"
+        text += "2) Receive a random trinket\\n"
+        text += "3) Leave\\n"
+        state["npc"] = "Traveling Merchant"
+    state["mode"] = "npc_dialog"
+    return text
 
-def npc_dialog(npc_name):
-    print(f"\\n💬 You meet {npc_name}.")
-
-    if npc_name == "Old Sage":
-        print("\\nOld Sage: 'Traveler... the world is full of dangers.'")
-        print("1) Ask for wisdom")
-        print("2) Ask for healing")
-        print("3) Leave")
-        choice = input("→ ")
-
-        if choice == "1":
-            print("\\nOld Sage: 'Bosses fall easier to those who prepare their gear and heal in time.'")
-        elif choice == "2":
+def handle_npc_dialog_input(inp: str):
+    npc = state["npc"]
+    inp = inp.strip()
+    text = ""
+    if npc == "Old Sage":
+        if inp == "1":
+            text += "\\nOld Sage: 'Bosses fall easier if you prepare your gear and heal in time.'\\n"
+        elif inp == "2":
             heal = 15
             player["hp"] = min(player["hp"] + heal, player["max_hp"])
-            print(f"\\nOld Sage: 'Be well, child.' (+{heal} HP)")
+            text += f\"\\nOld Sage: 'Be well, child.' (+{heal} HP)\\n\"
         else:
-            print("\\nOld Sage: 'Farewell.'")
-
-    elif npc_name == "Village Guard":
-        print("\\nGuard: 'Stay out of trouble, adventurer.'")
-        print("1) Ask about dangers")
-        print("2) Ask about treasure")
-        print("3) Leave")
-        choice = input("→ ")
-
-        if choice == "1":
-            print("\\nGuard: 'The mountain beasts hit hard. Bring armor.'")
-        elif choice == "2":
-            print("\\nGuard: 'They say the lake hides something ancient and powerful.'")
+            text += "\\nOld Sage: 'Farewell.'\\n"
+        state["mode"] = "npc_menu"
+        return text + npc_menu_text()
+    elif npc == "Village Guard":
+        if inp == "1":
+            text += "\\nGuard: 'The mountain beasts hit hard. Bring armor.'\\n"
+        elif inp == "2":
+            text += "\\nGuard: 'They say the lake hides something ancient and powerful.'\\n"
         else:
-            print("\\nGuard: 'Move along.'")
-
-    elif npc_name == "Traveling Merchant":
-        print("\\nMerchant: 'Greetings! I have something for you.'")
-        print("1) Receive a free Potion")
-        print("2) Receive a random trinket")
-        print("3) Leave")
-        choice = input("→ ")
-
-        if choice == "1":
+            text += "\\nGuard: 'Move along.'\\n"
+        state["mode"] = "npc_menu"
+        return text + npc_menu_text()
+    elif npc == "Traveling Merchant":
+        if inp == "1":
             player["inventory"].append("Potion")
-            print("\\nMerchant: 'Use it wisely.' (Potion added)")
-        elif choice == "2":
+            text += "\\nMerchant: 'Use it wisely.' (Potion added)\\n"
+        elif inp == "2":
             item = random.choice(["Magic Feather", "Lucky Charm", "Old Map"])
             player["inventory"].append(item)
-            print(f"\\nMerchant: 'A fine choice!' ({item} added)")
+            text += f\"\\nMerchant: 'A fine choice!' ({item} added)\\n\"
         else:
-            print("\\nMerchant: 'Safe travels.'")
+            text += "\\nMerchant: 'Safe travels.'\\n"
+        state["mode"] = "npc_menu"
+        return text + npc_menu_text()
+    else:
+        state["mode"] = "npc_menu"
+        return npc_menu_text()
 
-    input("\\nPress ENTER to continue...")
-
-def random_npc_event(area_key):
+def random_npc_event_text():
     if random.random() < 0.3:
         npc = random.choice(["Lost Explorer", "Forest Spirit", "Wandering Monk"])
-        print(f"\\n✨ You encounter a {npc} on your journey.")
-        print(f"{npc}:")
+        text = f"\\n✨ You encounter a {npc} on your journey.\\n"
         if npc == "Lost Explorer":
-            print("'I’ve been wandering here for days... take this, it might help you.'")
+            text += "'I've been wandering here for days... take this, it might help you.'\\n"
             player["inventory"].append("Potion")
-            print("You received a Potion!")
+            text += "You received a Potion!\\n"
         elif npc == "Forest Spirit":
             heal = 10
             player["hp"] = min(player["hp"] + heal, player["max_hp"])
-            print(f"'Your spirit is seen. Be healed.' (+{heal} HP)")
+            text += f"'Your spirit is seen. Be healed.' (+{heal} HP)\\n"
         else:
-            print("'Silence is also an answer...' (nothing happens)")
-        input("\\nPress ENTER to continue...")
+            text += "'Silence is also an answer...' (nothing happens)\\n"
+        return text
+    return ""
 
-def combat(enemy, is_boss=False):
-    enemy_name = enemy["name"]
-    enemy_hp = enemy["hp"]
-    enemy_attack = enemy["attack"]
-    enemy_gold = enemy["gold"]
-
-    print(f"\\n⚔️ A {enemy_name} appears!")
-    if is_boss:
-        print("🔥 This is a BOSS fight!")
-
-    while player["hp"] > 0 and enemy_hp > 0:
-        print(f"\\nYour HP: {player['hp']}/{player['max_hp']} | {enemy_name} HP: {enemy_hp}")
-        print("1) Attack")
-        print("2) Defend")
-        print("3) Use item")
-        print("4) Run away" + (" (can't run from boss!)" if is_boss else ""))
-        action = input("→ ")
-
-        defended = False
-
-        if action == "1":
-            dmg = random.randint(get_attack(), get_attack() + 4)
-            enemy_hp -= dmg
-            print(f"You strike the {enemy_name} for {dmg} damage!")
-        elif action == "2":
-            defended = True
-            print("You brace yourself for the attack.")
-        elif action == "3":
-            use_item()
-        elif action == "4" and not is_boss:
-            print("You run away safely...")
-            return False
-        elif action == "4" and is_boss:
-            print("You cannot escape from a boss!")
-        else:
-            print("Invalid action.")
-            continue
-
-        if enemy_hp > 0:
-            dmg_taken = random.randint(enemy_attack - 2, enemy_attack + 2)
-            dmg_taken = max(1, dmg_taken - get_defense())
-            if defended:
-                dmg_taken //= 2
-            player["hp"] -= dmg_taken
-            print(f"The {enemy_name} hits you for {dmg_taken} damage.")
-
-    if player["hp"] <= 0:
-        print("\\n💀 You have fallen in battle...")
-        print("Game over.")
-        # exit() non funziona in browser, quindi fermiamo
-        return
-
-    print(f"\\n🎉 You defeated the {enemy_name}!")
-    print(f"You receive {enemy_gold} gold.")
-    player["gold"] += enemy_gold
-    loot = random.choice(["Nothing", "Potion", "Bomb", "Trinket"])
-    if loot != "Nothing":
-        if loot == "Trinket":
-            loot = random.choice(["Ancient Coin", "Shiny Gem", "Old Ring"])
-        player["inventory"].append(loot)
-        print(f"You found: {loot}")
-    return True
-
+# -------------------------
+# ITEMS
+# -------------------------
 def use_item():
     if not player["inventory"]:
-        print("\\nYou have no items.")
-        return
-
-    print("\\n🎒 Your inventory:")
+        return "\\nYou have no items.\\n"
+    text = "\\n🎒 Your inventory:\\n"
     for i, item in enumerate(player["inventory"], start=1):
-        print(f"{i}) {item}")
-    print(f"{len(player['inventory']) + 1}) Cancel")
-
-    choice = input("Choose an item: ")
-
-    if not choice.isdigit():
-        print("Invalid choice.")
-        return
-
-    idx = int(choice)
-    if idx == len(player["inventory"]) + 1:
-        return
-    if idx < 1 or idx > len(player["inventory"]):
-        print("Invalid choice.")
-        return
-
-    item = player["inventory"].pop(idx - 1)
-
-    if item == "Potion":
+        text += f"{i}) {item}\\n"
+    text += f"{len(player['inventory']) + 1}) Cancel\\n"
+    # In modalità web, per semplificare, usiamo sempre la prima Potion se c'è
+    # (per non chiedere un input extra dentro il combattimento)
+    # Se vuoi renderlo interattivo, servirebbe un sotto-stato dedicato.
+    if "Potion" in player["inventory"]:
+        player["inventory"].remove("Potion")
         heal = 20
         player["hp"] = min(player["hp"] + heal, player["max_hp"])
-        print(f"You drink a Potion and heal {heal} HP.")
-    elif item == "Bomb":
-        print("You throw a Bomb! (In this simple version, it just looks cool.)")
+        text += f"You automatically drink a Potion and heal {heal} HP.\\n"
     else:
-        print(f"You inspect the {item}. It has no obvious use... yet.")
+        text += "No usable items were consumed.\\n"
+    return text
 
-def start_game():
-    print("=== FULL TERMINAL RPG ADVENTURE ===")
-    world_map()
+# -------------------------
+# MAIN ENTRY
+# -------------------------
+def init_game():
+    state["mode"] = "world_map"
+    intro = "=== FULL TERMINAL RPG ADVENTURE (WEB) ===\\n"
+    intro += random_npc_event_text()
+    intro += show_world_map()
+    return intro
 
-start_game()
+def handle_input(user_input: str):
+    mode = state["mode"]
+    if mode == "world_map":
+        return handle_world_map_input(user_input)
+    elif mode == "exploring":
+        # In questa versione semplice, non rimaniamo mai in 'exploring' senza combattere,
+        # quindi non dovresti arrivare qui.
+        return show_world_map()
+    elif mode == "combat":
+        return handle_combat_input(user_input)
+    elif mode == "village":
+        return handle_village_input(user_input)
+    elif mode == "shop":
+        return handle_shop_input(user_input)
+    elif mode == "npc_menu":
+        return handle_npc_menu_input(user_input)
+    elif mode == "npc_dialog":
+        return handle_npc_dialog_input(user_input)
+    elif mode == "game_over":
+        return "Game over. Refresh the page to restart."
+    else:
+        return "Unknown state. Returning to world map.\\n" + show_world_map()
 `;
 
-            pyodide.runPython(code);
+      await pyodide.runPythonAsync(pythonCode);
 
-            // Output handling
-            pyodide.setStdout({
-                batched: (text) => {
-                    output.innerHTML += text.replace(/\\n/g, '<br>') + "<br>";
-                    output.scrollTop = output.scrollHeight;
-                }
-            });
+      initGamePy = pyodide.globals.get("init_game");
+      handleInputPy = pyodide.globals.get("handle_input");
 
-            // Simple input handling
-            input.addEventListener("keydown", (e) => {
-                if (e.key === "Enter") {
-                    let value = input.value;
-                    output.innerHTML += "> " + value + "<br>";
-                    pyodide.globals.set("last_input", value + "\\n");
-                    input.value = "";
-                    output.scrollTop = output.scrollHeight;
-                }
-            });
+      const introText = initGamePy();
+      output.innerHTML = introText.replace(/\n/g, "<br>");
+
+      input.addEventListener("keydown", async (e) => {
+        if (e.key === "Enter") {
+          const value = input.value;
+          if (!value.trim()) return;
+          output.innerHTML += `<br>&gt; ${value}<br>`;
+          input.value = "";
+          const response = handleInputPy(value);
+          output.innerHTML += response.replace(/\n/g, "<br>");
+          output.scrollTop = output.scrollHeight;
         }
-        main();
-    </script>
+      });
+    }
+
+    loadGame();
+  </script>
 </body>
 </html>
