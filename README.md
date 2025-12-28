@@ -7,7 +7,7 @@ Personal portfolio of a 16-years-old self-taught developer from Italy.
 - Rest API  library with node.js and Express
 - Console blackjack game in C++
 - Private diary with HTML/CSS/JS
-- Text-based adventure game in python
+- Text-based adventure game in python and Demo live with Pyodide
 
 More projects in development.
 

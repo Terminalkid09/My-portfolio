@@ -101,3 +101,19 @@ footer {
     border-radius: 10px;
     margin:40px auto;
 }
+
+.demo-link {
+    font-weight: bold;
+    color: #00ff00;
+    font-size: 1.1em;
+    border: 1px solid #00ff00;
+    padding: 8px 16px;
+    border-radius: 5px;
+    display: inline-block;
+    margin: 10px 0;
+}
+
+.demo-link:hover {
+    background-color: #00ff0020;
+    box-shadow: 0 0 10px #00ff00;
+}
