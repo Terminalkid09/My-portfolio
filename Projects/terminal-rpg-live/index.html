@@ -565,6 +565,7 @@ def handle_input(user_input: str):
           const response = handleInputPy(value);
           output.innerHTML += response.replace(/\n/g, "<br>");
           output.scrollTop = output.scrollHeight;
+          window.scrollTo(0, document.body.scrollHeight);
         }
       });
     }
