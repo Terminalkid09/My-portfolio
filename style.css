@@ -35,6 +35,13 @@ footer {
     font-size: 1.1em;
 }
 
+.about-me {
+    border: 2px solid #00ff00;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 40px auto;
+}
+
 .skills-list {
     list-style: none;          
     padding: 0;
@@ -45,6 +52,7 @@ footer {
 
 .skills-list li {
     margin: 15px 0;
+    text-shadow: 0 0 5px #00ff00;
 }
 
 .skills-list li::before {
@@ -86,4 +94,10 @@ footer {
 
 .project-card a:hover {
     text-decoration: underline;
+}
+
+.contact {
+    border: 2px solid #00ff00;
+    border-radius: 10px;
+    margin:40px auto;
 }
