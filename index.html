@@ -4,97 +4,134 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terminalkid09 - Portfolio</title>
-    <link rel="icon" href="matrix-rain.png" type="image/png"/>
+    <link rel="icon" href="matrix-rain.png" type="image/png">
     <link rel="stylesheet" href="style.css">
+
+    <meta name="description" content="Portfolio di Terminalkid09, sviluppatore autodidatta di 16 anni. Progetti in C++, Node.js, Python e web development.">
 </head>
+
 <body>
+    <div class="matrix">
+  <span>0</span><span>1</span><span>0</span><span>1</span><span>0</span>
+  <span>1</span><span>0</span><span>1</span><span>0</span><span>1</span>
+  <span>0</span><span>1</span><span>0</span><span>1</span><span>0</span>
+  <span>1</span><span>0</span><span>1</span><span>0</span><span>1</span>
+  <span>0</span><span>1</span><span>0</span><span>1</span><span>0</span>
+  <span>1</span><span>0</span><span>1</span><span>0</span><span>1</span>
+  
+</div>
     <div class="container">
+
+        <!-- NAVBAR -->
+        <nav class="navbar">
+            <a href="#about">About</a>
+            <a href="#skills">Skills</a>
+            <a href="#projects">Projects</a>
+            <a href="#contact">Contact</a>
+        </nav>
+
+        <!-- HEADER -->
         <header>
-          <h1>Terminalkid09 🐱</h1>
-<p>16 years old | Self-taught developer from Italy</p>
-<p>Passionate about: Web Developer • Node.js • C++ • Ethical Hacking</p>
+            <h1>Terminalkid09 🐱</h1>
+            <p>16-year-old | Self-taught developer from Italy</p>
+            <p>Passionate about: Web Development • Node.js • C++ • Ethical Hacking</p>
+        </header>
 
-<main>
-    <section class="about-me">
-    <h2>About Me</h2>
-    <p>I'm a 16 year-old self-taught developer based in Italy with a passion for coding and cybersecurity.</p>
-    <p>I started programming on my own and built projects in C++ (console applications), Node.js (REST APIs), and Javascript (interactive web apps).</p>
-    <p>I'm currently learning python for automation and scripting, while exploring ethical hacking on TryHackMe.</p>
-    <p>My goal is to beacome a fullstack developer with a focus on secure and efficient systems.</p>
-</section>
-    <h2>Skills</h2>
-    <ul class="skills-list">
-        <li>● HTML</li>
-        <li>● CSS</li>
-        <li>● JavaScript</li>
-        <li>● Node.js & Express</li>
-        <li>● C++</li>
-        <li>● Python (learning)</li>
-        <li>● Ethical Hacking (TryHackMe)</li>
-    </ul>
+        <!-- MAIN -->
+        <main>
 
-    <h2>Projects</h2>
+            <!-- ABOUT ME -->
+            <section id="about" class="about-me">
+                <h2>About Me</h2>
+                <p>I'm a 16-year-old self-taught developer based in Italy with a passion for coding and cybersecurity.</p>
+                <p>I started programming on my own and built projects in C++ (console applications), Node.js (REST APIs), and JavaScript (interactive web apps).</p>
+                <p>I'm currently learning Python for automation and scripting, while exploring ethical hacking on TryHackMe.</p>
+                <p>My goal is to become a full-stack developer with a focus on secure and efficient systems.</p>
+            </section>
 
-    <!-- Card Blackjack -->
-    <div class="project-card">
-        <h3>🃏 Console Blackjack in C++</h3>
-        <p>Terminal Blackjack game with betting, balance and full rules.</p>
-        <p><strong>Language:</strong> C++</p>
-        <img src="Projects/Blackjack-cpp/gameplay.png" alt="Blackjack gameplay" class="project-image">
-        <p><a href="https://github.com/Terminalkid09/My-portfolio/tree/main/Projects/BlackJack-cpp" target="_blank">View code on GitHub →</a></p>
-    </div>
+            <!-- SKILLS -->
+            <section id="skills">
+                <h2>Skills</h2>
+                <ul class="skills-list">
+                    <li>HTML</li>
+                    <li>CSS</li>
+                    <li>JavaScript</li>
+                    <li>Node.js & Express</li>
+                    <li>C++</li>
+                    <li>Python (learning)</li>
+                    <li>Ethical Hacking (TryHackMe)</li>
+                </ul>
+            </section>
 
-    <!-- Card Gestore password -->
-    <div class="project-card">
-        <h3> 🔑 Console password manager in C++</h3>
-        <p>Console password manager with add, list, search and generate functions.</p>
-        <p><strong>Language:</strong> C++</p>
-        <img src="Projects/password-manager-cpp/add.png" alt="Password manager" class="project-image">
-        <img src="Projects/password-manager-cpp/list.png" alt="Password list" class="project-image">
-        <p><a href="https://github.com/Terminalkid09/My-portfolio/tree/main/Projects/password-manager-cpp" target="_blank">View code on GitHub →</a></p>
-    </div>
+            <!-- PROJECTS -->
+            <section id="projects">
+                <h2>Projects</h2>
 
-    <!-- Card API Node.js -->
-    <div class="project-card">
-        <h3>📚 REST API Library with Node.js</h3>
-        <p>CRUD REST API to manage books (GET, POST, PUT, DELETE).</p>
-        <p><strong>Technologies:</strong> Node.js, Express</p>
-        <img src="Projects/api-library-node/first.png" alt="API GET response" class="project-image">
-        <img src="Projects/api-library-node/afterPOST.png" alt="API POST response" class="project-image">
-        <p><a href="https://github.com/Terminalkid09/My-portfolio/tree/main/Projects/api-library-node" target="_blank">View code on GitHub →</a></p>
-    </div>
+                <!-- Blackjack -->
+                <article class="project-card">
+                    <h3>🃏 Console Blackjack in C++</h3>
+                    <p>Terminal Blackjack game with betting, balance and full rules.</p>
+                    <p><strong>Language:</strong> C++</p>
+                    <img src="Projects/Blackjack-cpp/gameplay.png" alt="Screenshot of C++ Blackjack game" class="project-image">
+                    <p><a href="https://github.com/Terminalkid09/My-portfolio/tree/main/Projects/BlackJack-cpp" target="_blank">View code on GitHub →</a></p>
+                </article>
 
-    <!-- Card Private Diary -->
-    <div class="project-card">
-        <h3>🔒 Private Diary with HTML/CSS/JS</h3>
-        <p>Secure diary with password protection and local storage.</p>
-        <p><strong>Technologies:</strong> HTML, CSS, JavaScript</p>
-        <img src="Projects/private-diary/set-password.png" alt="Private Diary gallery" class="project-image">
-        <img src="Projects/private-diary/notes.png" alt="Private Diary notes" class="project-image">
-        <p><a href="https://terminalkid09-portfolio.netlify.app/Projects/private-diary/index.html" target="_blank" class="demo-link">🔒Demo live</a></p>
-        <p><a href="https://github.com/Terminalkid09/My-portfolio/tree/main/Projects/private-diary" target="_blank">View code on GitHub →</a></p>
-        
-    </div>
+                <!-- Password Manager -->
+                <article class="project-card">
+                    <h3>🔑 Console Password Manager in C++</h3>
+                    <p>Console password manager with add, list, search and generate functions.</p>
+                    <p><strong>Language:</strong> C++</p>
+                    <img src="Projects/password-manager-cpp/add.png" alt="Adding a password in the C++ password manager" class="project-image">
+                    <img src="Projects/password-manager-cpp/list.png" alt="Password list screenshot" class="project-image">
+                    <p><a href="https://github.com/Terminalkid09/My-portfolio/tree/main/Projects/password-manager-cpp" target="_blank">View code on GitHub →</a></p>
+                </article>
 
-    <!-- Card Adventure Game -->
-    <div class="project-card">
-        <h3> 🎮 Text-based Adventure Game in Python</h3>
-        <p>Terminal RPG with world map, enemies, bosses, shop, inventory and combat.</p>
-        <p><strong>Language:</strong> Python</p>
-        <img src="Projects/adventure-game-py/menu.png" alt="Adventure game" class="project-image">
-        <img src="Projects/adventure-game-py/village.png" alt="Adventure game village" class="project-image">
-        <img src="Projects/adventure-game-py/fight.png" alt="Adventure game combat" class="project-image">
-        <p><a href="https://terminalkid09-portfolio.netlify.app/projects/terminal-rpg-live/" target="_blank" class="demo-link">🎮Demo live</a></p>
-        <p><a href="https://github.com/Terminalkid09/My-portfolio/tree/main/Projects/adventure-game-py" target="_blank">View code on GitHub →</a></p>
-    </div>
+                <!-- Node.js API -->
+                <article class="project-card">
+                    <h3>📚 REST API Library with Node.js</h3>
+                    <p>CRUD REST API to manage books (GET, POST, PUT, DELETE).</p>
+                    <p><strong>Technologies:</strong> Node.js, Express</p>
+                    <img src="Projects/api-library-node/first.png" alt="API GET response screenshot" class="project-image">
+                    <img src="Projects/api-library-node/afterPOST.png" alt="API POST response screenshot" class="project-image">
+                    <p><a href="https://github.com/Terminalkid09/My-portfolio/tree/main/Projects/api-library-node" target="_blank">View code on GitHub →</a></p>
+                </article>
 
-    <p>More projects coming soon...</p>
-</main>
+                <!-- Private Diary -->
+                <article class="project-card">
+                    <h3>🔒 Private Diary with HTML/CSS/JS</h3>
+                    <p>Secure diary with password protection and local storage.</p>
+                    <p><strong>Technologies:</strong> HTML, CSS, JavaScript</p>
+                    <img src="Projects/private-diary/set-password.png" alt="Private diary password setup screenshot" class="project-image">
+                    <img src="Projects/private-diary/notes.png" alt="Private diary notes screenshot" class="project-image">
+                    <p><a href="https://terminalkid09-portfolio.netlify.app/Projects/private-diary/index.html" target="_blank" class="demo-link">🔒 Live Demo</a></p>
+                    <p><a href="https://github.com/Terminalkid09/My-portfolio/tree/main/Projects/private-diary" target="_blank">View code on GitHub →</a></p>
+                </article>
 
-<footer class="contact">
-    <p>Contact me:</p>
-    <p>GitHub: <a href="https://github.com/Terminalkid09" target="_blank">@Terminalkid09</a></p>
-</footer>
+                <!-- Python RPG -->
+                <article class="project-card">
+                    <h3>🎮 Text-based Adventure Game in Python</h3>
+                    <p>Terminal RPG with world map, enemies, bosses, shop, inventory and combat.</p>
+                    <p><strong>Language:</strong> Python</p>
+                    <img src="Projects/adventure-game-py/menu.png" alt="Python RPG menu screenshot" class="project-image">
+                    <img src="Projects/adventure-game-py/village.png" alt="Python RPG village screenshot" class="project-image">
+                    <img src="Projects/adventure-game-py/fight.png" alt="Python RPG combat screenshot" class="project-image">
+                    <p><a href="https://terminalkid09-portfolio.netlify.app/projects/terminal-rpg-live/" target="_blank" class="demo-link">🎮 Live Demo</a></p>
+                    <p><a href="https://github.com/Terminalkid09/My-portfolio/tree/main/Projects/adventure-game-py" target="_blank">View code on GitHub →</a></p>
+                </article>
+
+                <p>More projects coming soon...</p>
+            </section>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer id="contact" class="contact">
+            <p>Contact me:</p>
+            <p>GitHub: <a href="https://github.com/Terminalkid09" target="_blank">@Terminalkid09</a></p>
+            <p>Email: <a href="mailto:Terminalkid09@gmail.com">Terminalkid09@gmail.com</a></p>
+            <p>LinkedIn: <a href="https://www.linkedin.com/in/cristian-trif-073a883a1" target="_blank">@Terminalkid09</a></p>
+        </footer>
+
     </div>
 </body>
 </html>
