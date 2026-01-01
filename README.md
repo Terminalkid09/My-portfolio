@@ -1,52 +1,38 @@
-# Terminalkid09 — Developer Portfolio
+# My Portfolio
 
-Personal portfolio of a 16-year-old self-taught developer from Italy.  
-Passionate about cybersecurity, automation, and building real-world tools that solve technical challenges.
+This is the source code of my personal developer portfolio.  
+I built it to have a clean and minimal place where people can see who I am, what I build, and how I think as a developer.
 
-This portfolio showcases my growth through hands-on projects in Python, C++, Node.js, and web development.
+The goal is simple: show my projects clearly, without overcomplicating things, and keep everything lightweight and easy to maintain.
 
-## Projects
+---
 
-- 🔑 **Console Password Manager** — C++  
-  Add, list, search and generate secure passwords in a terminal interface.
+## 🚀 Features
 
-- 📚 **REST API Library** — Node.js & Express  
-  CRUD API to manage books with GET, POST, PUT, DELETE endpoints.
+- A minimal and fast UI  
+- A section with all my main projects  
+- A short introduction about me and what I focus on  
+- A structure that I can update anytime without breaking anything  
 
-- 🔒 **Private Diary Web App** — HTML/CSS/JavaScript  
-  Secure notes with password protection and local storage.  
-  [🔒 Live Demo](https://terminalkid09-portfolio.netlify.app/Projects/private-diary/index.html)
+No frameworks, no unnecessary dependencies — just code that works.
 
-- 🎮 **Text-Based RPG Game** — Python  
-  World map, enemies, bosses, shop, inventory and combat system.  
-  Built with Pyodide to run directly in browser.  
-  [🎮 Play Live Demo](https://terminalkid09-portfolio.netlify.app/projects/terminal-rpg-live/)
+---
 
-- 🤖 **OSINT Discord Bot** — Python  
-  Modular bot for Open Source Intelligence (OSINT) and cybersecurity recon tasks.  
-  Includes IP lookup, breach check, port scanning, WHOIS, social scan, and more.
+## 🛠️ Tech Stack
 
-- 🃏 **Console Blackjack Game** — C++  
-  *(Archived — early project, no longer maintained)*
+- **HTML**  
+- **CSS**  
+- **JavaScript**
 
-More projects in development.
 
-## Technologies
 
-- Python • C++ • Node.js • Express  
-- HTML • CSS • JavaScript  
-- Discord.py • aiohttp • phonenumbers  
-- TryHackMe • Pyodide • Git • GitHub
+## 📂 Structure
 
-##  About Me
+- `index.html` – The main page  
+- `style.css` – All the styling   
+- `README.md` – This file
 
-I'm a resilient and curious developer who learns by doing.  
-I build tools that are reliable, secure, and impactful — blending hacker aesthetics with professional polish.
+## How to run
+To view the portfolio, simply open the `index.html` file in your web browser. No additional setup is required.
 
-My goal is to become a full-stack developer with strong cybersecurity foundations.
-
-## Contact
-
-- GitHub: [@Terminalkid09](https://github.com/Terminalkid09)  
-- LinkedIn: [Cristian Trif](https://www.linkedin.com/in/cristian-trif-073a883a1)  
-- Email: [Terminalkid09@gmail.com](mailto:Terminalkid09@gmail.com)
+**@Terminalkid09**
